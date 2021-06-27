@@ -1,32 +1,25 @@
-@client.command()
-@commands.has_permissions(manage_nicknames=True)
-async def setnick(ctx, member:discord.Member,*,nick=None):
-    old_nick = member.display_name
+@client.command(aliases=['av'])
+async def avatar(ctx,member:discord.Member=None):
+    if not member:
+        member=ctx.author
 
-    await member.edit(nick=nick)
+    icon=member.avatar_url
+    em=discord.Embed(title='Avatar',color=0x123456,
+        timestamp=datetime.utcnow()).set_author(
+        name=f'{member.name}#{member.discriminator}',icon_url=icon).set_image(
+        url=icon)
 
-    new_nick = member.display_name
+    await ctx.send(embed=em)
 
-    await ctx.send(f'Changed nick from *{old_nick}* to *{new_nick}*')
-    
-@client.command()
-@commands.has_permissions(manage_channels=True)
-async def lock(ctx,*,reason='None'):
-    channel =ctx.channel
-    overwrite = channel.overwrites_for(ctx.guild.default_role)
-    overwrite.send_messages = False
-    await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
 
-    embed=discord.Embed(title=f'🔒 Locked',description=f'Reason: {reason}')
 
-    await channel.send(embed=embed)
+@client.command(aliases=['sm'])
+async def slowmode(ctx,sec:int=None,channel:discord.TextChannel=None):
+    if not sec:
+        sec=0
+    if not channel:
+        channel=ctx.channel
 
-@client.command()
-@commands.has_permissions(manage_channels=True)
-async def unlock(ctx,*,reason='None'):
-    channel =ctx.channel
-    overwrite = channel.overwrites_for(ctx.guild.default_role)
-    overwrite.send_messages = True
-    await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
-    embed=discord.Embed(title=f'🔓 Unlocked',description=f'Reason: {reason}')
-    await channel.send(embed=embed)
+    await channel.edit(slowmode_delay=sec)
+
+    await channel.send(f'This channel is now on **{sec}s** slowmode')
