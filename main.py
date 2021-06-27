@@ -1,25 +1,21 @@
-@client.command(aliases=['av'])
-async def avatar(ctx,member:discord.Member=None):
-    if not member:
-        member=ctx.author
+@client.event
+async def on_member_join(member):
+    channel = client.get_channel(837215080411168768)
 
-    icon=member.avatar_url
-    em=discord.Embed(title='Avatar',color=0x123456,
-        timestamp=datetime.utcnow()).set_author(
-        name=f'{member.name}#{member.discriminator}',icon_url=icon).set_image(
-        url=icon)
+    em=discord.Embed(
+        title=f'Welcome',
+        description=f'{member.mention} Joined {member.guild.name}',
+        color=discord.Color.random(),
+        timestamp=datetime.utcnow()
+        ).add_field(
+        name=f':hey: Rules',
+        value=f'<#798887148509593600>'
+        ).add_field(
+        name=f':hey: Chat',
+        value='<#826387689472917515>'
+        ).add_field(
+        name=f'Total members',
+        value=f'{member.guild.member_count}'
+        ).set_footer(text=f'{member.name} just joined')
 
-    await ctx.send(embed=em)
-
-
-
-@client.command(aliases=['sm'])
-async def slowmode(ctx,sec:int=None,channel:discord.TextChannel=None):
-    if not sec:
-        sec=0
-    if not channel:
-        channel=ctx.channel
-
-    await channel.edit(slowmode_delay=sec)
-
-    await channel.send(f'This channel is now on **{sec}s** slowmode')
+    await channel.send(embed=em)
