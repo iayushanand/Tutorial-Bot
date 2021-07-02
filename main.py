@@ -1,25 +1,18 @@
-@client.command(aliases=['av'])
-async def avatar(ctx,member:discord.Member=None):
-    if not member:
-        member=ctx.author
+#import modules
+import discord
+from dscord.ext import commands
 
-    icon=member.avatar_url
-    em=discord.Embed(title='Avatar',color=0x123456,
-        timestamp=datetime.utcnow()).set_author(
-        name=f'{member.name}#{member.discriminator}',icon_url=icon).set_image(
-        url=icon)
+# input token, prefix and extensions
+token='bot_token'
+prefix='prefix
+ext=['cogs.embed']
 
-    await ctx.send(embed=em)
+# create a client
+client=commands.Bot(command_prefix=prefix)
 
+#load extensions
+for e in ext:
+    client.load_extension(e)
 
-
-@client.command(aliases=['sm'])
-async def slowmode(ctx,sec:int=None,channel:discord.TextChannel=None):
-    if not sec:
-        sec=0
-    if not channel:
-        channel=ctx.channel
-
-    await channel.edit(slowmode_delay=sec)
-
-    await channel.send(f'This channel is now on **{sec}s** slowmode')
+# run client
+client.run(token)
