@@ -41,5 +41,48 @@ async def new(ctx,reason):
     await channel.send(embed=em)
 
 
+@bot.command(guild_ids=[798880389904203797],description="""Close the ticket""")
+async def close(ctx): # creating close command
+    if ctx.channel.category.name!="OPENED TICKETS": # making sure that you cant use this command in any other categs
+        return await ctx.respond("You can't use this command here",ephemeral=True)
+
+    await ctx.respond("Closing Ticket!")
+    categ=discord.utils.get(ctx.guild.categories,name="CLOSED TICKETS") # selecting the category(by its name)
+
+    ch=ctx.channel
+    r1=ctx.guild.get_role(798881589055717376)
+
+    overwrite={ # creating overwrites
+        ctx.guild.default_role:discord.PermissionOverwrite(read_messages=False),
+        ctx.me:discord.PermissionOverwrite(read_messages=True),
+        r1:discord.PermissionOverwrite(read_messages=True)
+        }
+
+    await ch.edit(category=categ,overwrites=overwrite) # moving the channel to "CLOSED TICKETS"
+    mem=await ctx.guild.fetch_member(int(ch.topic)) # getting the member who created the ticket
+    await ch.send(file=discord.File(f"{mem.id}.txt")) # uploading the <memid>.txt file which contains all the chats
+    os.remove(f"{mem.id}.txt") # deleting the file after uploading
+
+@bot.command(guild_ids=[798880389904203797],description="""Delete the ticket""")
+async def trash(ctx): # creating a command to delete the ticket
+    if ctx.channel.category.name!="CLOSED TICKETS": # making sure that this command cant be used in any other channel 
+        return await ctx.respond("You can't use this command here!", ephemeral=True)
+
+    await ctx.respond("Deleting Ticket in 5s")
+    await asyncio.sleep(5)
+    await ctx.channel.delete() # deleting the ticket
+
+@bot.event
+async def on_message(msg):
+    if msg.author.bot: # if message is sent by bots than ignore
+        return
+    if msg.channel.category.name=="OPENED TICKETS": # if the message is in "OPENED TICKETS" categ...
+        mem=msg.author
+        topic=msg.channel.topic # getting the channel topic to fetch member
+        tick=await msg.guild.fetch_member(int(topic)) # fetching the member
+        text=open(f"{tick.id}.txt","a") # opening the file <memid>.txt; if no file than creating one...
+        text.write(f"Name: {msg.author.name}#{msg.author.discriminator}, {msg.content}\n") # writing in file and closing it...
+        text.close()
+    
 # running the bot
 bot.run("TOKEN")
