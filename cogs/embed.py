@@ -7,9 +7,9 @@ class Embed(commands.Cog):
 	def __init__(self, client):
 		self.client = client
 
-	# @commands.Cog.listener()
-	# async def on_ready():
-	# 	print('Embed.py loaded!')
+	@commands.Cog.listener
+	async def on_ready():
+		print('Embed.py loaded!')
 
 	@commands.command(aliases=['em'])
 	async def embed(self,ctx,*,msg=None):
