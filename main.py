@@ -1,439 +1,126 @@
-from attr import __description__
-import discord,random,DiscordUtils,datetime,asyncio,json
-from discord import client
-from discord.ext import commands, tasks
-from PIL import Image,ImageDraw,ImageFont
-from io import BytesIO
-from datetime import datetime
+import discord
+from discord.ext import commands
 
-with open('config.json','rb') as f:
-    data =  json.load(f)
+import config
 
-    token=data["TOKEN"]
-    prefix=data["PREFIX"]
+import asyncio
+from discord.ui import Button, button, View
+
+bot = commands.Bot(
+    command_prefix="!",
+    intents=discord.Intents.all(),
+    status=discord.Status.dnd,
+    activity=discord.Activity(
+        type=discord.ActivityType.watching, name="YouTube"
+    ),
+    guild = discord.Object(id=798880389904203797)
+)
 
 
-
-intents=discord.Intents.all()
-intents.members=True
-intents.presences=True
-
-client=commands.Bot(command_prefix=prefix,intents=intents)
-tracker = DiscordUtils.InviteTracker(client)
-
-@client.event
+@bot.event
 async def on_ready():
-    print(f'{client.user.name} is now Online')
-    logs.start()
-    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,name=f'in {len(client.guilds)}servers with {len(client.users)} memebers!'))
+    print("Bot is ready!")
+    bot.add_view(CreateButton())
+    bot.add_view(CloseButton())
+    bot.add_view(TrashButton())
 
 
-
-@client.event
-async def on_member_join(member):
-    inviter = await tracker.fetch_inviter(member)
-    channel= client.get_channel(826387689472917515)
-    wel = Image.open('red.jpg')
-    asset=member.avatar_url_as(size=128)
-    data=BytesIO(await asset.read())
-    pfp = Image.open(data)
-    pfp.resize((128,128))
-    wel.paste(pfp,(18,118))
-
-    name = f'Name: {member.name}#{member.discriminator}'
-    server=f'Welcome to {member.guild.name}'
-    memid=f'Id: {member.id}'
-    invite=f'Invited by: {inviter}'
-    accc=f'Acc Date: {member.created_at.strftime("%a, %#d %B %Y, %I:%M %p UTC")}'
-    mc=f'We are now {member.guild.member_count} members Strong!'
-
-    font1 = ImageFont.truetype('font.otf',48)
-    font2 = ImageFont.truetype('font.otf',24)
-
-    draw = ImageDraw.Draw(wel)
-    draw.text((168,97), server, (255,255,255), font=font1)
-    draw.text((168,148), name, (255,255,255), font=font2)
-    draw.text((168,173), memid, (255,255,255), font=font2)
-    draw.text((168,196), invite, (255,255,255), font=font2)
-    draw.text((168,222), accc, (255,255,255), font=font2)
-    draw.text((168,246), mc, (255,255,255), font=font2)
-
-
-
-    wel.save('wel.png')
-    await channel.send(f'{member.mention}')
-    await channel.send(file=discord.File('wel.png'))
-
-
-@client.command()
-async def ping(ctx):
-    await ctx.send(f'{round(client.latency*1000)}ms')
-
-@client.command()
-@commands.has_permissions(manage_nicknames=True)
-async def setnick(self, ctx, member:discord.Member,*,nick=None):
-    old_nick = member.display_name
-
-    await member.edit(nick=nick)
-
-    new_nick = member.display_name
-
-    await ctx.send(f'Changed nick from *{old_nick}* to *{new_nick}*')
+class CreateButton(View):
+    def __init__(self):
+        super().__init__(timeout=None)
     
-@client.command()
-@commands.has_permissions(manage_channels=True)
-async def lock(self,ctx,*,reason='None'):
-    channel =ctx.channel
-    overwrite = channel.overwrites_for(ctx.guild.default_role)
-    overwrite.send_messages = False
-    await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
-
-    embed=discord.Embed(title=f'🔒 Locked',description=f'Reason: {reason}')
-
-    await channel.send(embed=embed)
-
-@commands.command()
-@commands.has_permissions(manage_channels=True)
-async def unlock(self,ctx,*,reason='None'):
-    channel =ctx.channel
-    overwrite = channel.overwrites_for(ctx.guild.default_role)
-    overwrite.send_messages = True
-    await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
-    embed=discord.Embed(title=f'🔓 Unlocked',description=f'Reason: {reason}')
-    await channel.send(embed=embed)
-
-
-
-
-
-
-
-
-
-# 837215080411168768
-# <a:hey:853159656246476810>
-
-
-# 798887148509593600 : Rules
-# 826387689472917515 : Chat
-
-
-
-
-
-# @client.event
-# async def on_member_join(member):
-#     channel = client.get_channel(837215080411168768)
-
-#     em=discord.Embed(
-#         title=f'Welcome',
-#         description=f'{member.mention} Joined {member.guild.name}',
-#         color=discord.Color.random(),
-#         timestamp=datetime.utcnow()
-#         ).add_field(
-#         name=f'<a:hey:853159656246476810> Rules',
-#         value=f'<#798887148509593600>'
-#         ).add_field(
-#         name=f'<a:hey:853159656246476810> Chat',
-#         value='<#826387689472917515>'
-#         ).add_field(
-#         name=f'Total members',
-#         value=f'{member.guild.member_count}'
-#         ).set_footer(text=f'{member.name} just joined')
-
-#     await channel.send(embed=em)
-
-
-message = 0
-
-
-
-# @client.event
-# async def on_message(msg):
-#     global message
-#     message+=1
-
-#     await client.process_commands(msg)
-
-
-
-
-
-
-
-
-
-# @client.command(aliases=['av'])
-# async def avatar(ctx,member:discord.Member):
-#     if not member:
-#         member=ctx.author
-
-#     icon=member.avatar_url
-
-#     em=discord.Embed(
-#         ).set_image(
-#         url=icon).set_author(
-#         name=f'{member.name}#{member.discriminator}',
-#         icon_url=icon)
-
-#     await ctx.send(embed=em)
-
-
-
-
-
-
-
-
-
-
-@client.command(aliases=['av'])
-async def avatar(ctx,member:discord.Member=None):
-    if not member:
-        member=ctx.author
-
-    icon=member.avatar_url
-    em=discord.Embed(title='Avatar',color=0x123456,
-        timestamp=datetime.utcnow()).set_author(
-        name=f'{member.name}#{member.discriminator}',icon_url=icon).set_image(
-        url=icon)
-
-    await ctx.send(embed=em)
-
-
-
-@client.command(aliases=['sm'])
-async def slowmode(ctx,sec:int=None,channel:discord.TextChannel=None):
-    if not sec:
-        sec=0
-    if not channel:
-        channel=ctx.channel
-
-    await channel.edit(slowmode_delay=sec)
-
-    await channel.send(f'This channel is now on **{sec}s** slowmode')
-
-
-
-
-
-# from random import *
-
-# @client.command(aliases=['cd'])
-# async def countdown(ctx,time:int=None):
-#     if not time:
-#         msg=await ctx.send('Please enter seconds between 0-60')
-
-#         def check(message):
-#             return message.author==ctx.author and message.channel==ctx.channel
-#         try:
-#             msg1 = await client.wait_for('message',check=check,timeout=10.0)
-#         except asyncio.TimeoutError:
-#             return await ctx.send("**Timeout!** Please try again later")
-
-#         else:
-#             time=int(msg1.content)
-
-#     else:
-#         pass
-
-#     if time<0 or time>60:
-#         await ctx.send('Limit of 0-60s exceeded!')
-
-#     else:
-#         await ctx.send(f'{time}s')
-
-
-
-
-
-
-from random import *
-
-@client.command(aliases=['cd'])
-async def countdown(ctx,time:int=None):
-    if not time:
-        await ctx.send('Enter time between 0-60s')
-
-        def check(message):
-            return message.author == ctx.author and message.channel == ctx.channel
-
-        try:
-            msg1 = await client.wait_for('message',check=check,timeout=10)
-
-        except asyncio.TimeoutError:
-            return await ctx.send('**Timeout!** Limit of 10s exceeded')
-
-        else:
-            time=int(msg1.content)
-
-    if time<0 or time>60:
-        await ctx.send('Time must be between 0-60 seconds')
-
-    else:
-        msg2=await ctx.send(f'{time}s')
-        while time>0:
-            time-=1
-            await asyncio.sleep(1)
-            await msg2.edit(content=f'{time}s')
-
-        await ctx.send(f'{ctx.author.mention} Countdown Completed!')
-
-
-
-
-
-
-
-
-
-# @client.command(aliases=['em'])
-# async def embed(ctx,color=ffffff):
-#     print(color)
-#     msg=await ctx.send('Please provide your message with 60s')
-
-#     def check(message):
-#         return message.author==ctx.author and message.channel==ctx.channel
-#     try:
-#         msg1 = await client.wait_for('message',check=check,timeout=60)
-
-#     except asyncio.TimeoutError:
-#         await msg.delete()
-#         await ctx.send('Timeout!',delete_after=5.0)
-
-#     else:
-#         msag=msg1.content
-
-#     em=discord.Embed(timestamp=datetime.utcnow(),
-#         color=color).set_author(
-#         name=f'{ctx.author.name}#{ctx.author.discriminator}',
-#         icon_url=f'{ctx.author.avatar_url}').add_field(name=' ',
-#         value=f'{msag}')
-
-#     await msg.delete()
-#     await ctx.send(embed=em)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# @client.event
-# async def on_member_update(before,after):
-#     role = before.guild.get_role(808896036395286528)
-
-#     if role not in before.roles:
-#         if role in after.roles:
-#             channel = client.get_channel(826387689472917515)
-
-#             em=discord.Embed(
-#                 color=0xff00de,
-#                 timestamp=datetime.utcnow()
-#             ).add_field(
-#                 name='Boost Incoming!',
-#                 value=f'Thanks for boosting {after.mention}'
-#             ).set_footer(text=f'We have now {str(after.guild.premium_subscription_count)} boost')
+    @button(label="Create Ticket",style=discord.ButtonStyle.blurple, emoji="🎫",custom_id="ticketopen")
+    async def ticket(self, interaction: discord.Interaction, button: Button):
+        await interaction.response.defer(ephemeral=True)
+        category: discord.CategoryChannel = discord.utils.get(interaction.guild.categories, id=1092259906188492840)
+        for ch in category.text_channels:
+            if ch.topic == f"{interaction.user.id} DO NOT CHANGE THE TOPIC OF THIS CHANNEL!":
+                await interaction.followup.send("You already have a ticket in {0}".format(ch.mention), ephemeral=True)
+                return
+
+        r1 : discord.Role = interaction.guild.get_role(798882014022860811)
+        overwrites = {
+            interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            r1: discord.PermissionOverwrite(read_messages=True, send_messages=True, manage_messages=True),
+            interaction.user: discord.PermissionOverwrite(read_messages = True, send_messages=True),
+            interaction.guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
+        }
+        channel = await category.create_text_channel(
+            name=str(interaction.user),
+            topic=f"{interaction.user.id} DO NOT CHANGE THE TOPIC OF THIS CHANNEL!",
+            overwrites=overwrites
+        )
+        await channel.send(
+            embed=discord.Embed(
+                title="Ticket Created!",
+                description="Don't ping a staff member, they will be here soon.",
+                color = discord.Color.green()
+            ),
+            view = CloseButton()
+        )
+        await interaction.followup.send(
+            embed= discord.Embed(
+                description = "Created your ticket in {0}".format(channel.mention),
+                color = discord.Color.blurple()
+            ),
+            ephemeral=True
+        )
+
+
+class CloseButton(View):
+    def __init__(self):
+        super().__init__(timeout=None)
     
-#             await channel.send(embed=em)
+    @button(label="Close the ticket",style=discord.ButtonStyle.red,custom_id="closeticket",emoji="🔒")
+    async def close(self, interaction: discord.Interaction, button: Button):
+        await interaction.response.defer(ephemeral=True)
+
+        await interaction.channel.send("Closing this ticket in 3 seconds!")
+
+        await asyncio.sleep(3)
+
+        category: discord.CategoryChannel = discord.utils.get(interaction.guild.categories, id = 917780278594896022)
+        r1 : discord.Role = interaction.guild.get_role(798882014022860811)
+        overwrites = {
+            interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            r1: discord.PermissionOverwrite(read_messages=True, send_messages=True, manage_messages=True),
+            interaction.guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
+        }
+        await interaction.channel.edit(category=category)
+        await interaction.channel.send(
+            embed= discord.Embed(
+                description="Ticket Closed!",
+                color = discord.Color.red()
+            ),
+            view = TrashButton()
+        )
+    
+
+class TrashButton(View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @button(label="Delete the ticket", style=discord.ButtonStyle.red, emoji="🚮", custom_id="trash")
+    async def trash(self, interaction: discord.Interaction, button: Button):
+        await interaction.response.defer()
+        await interaction.channel.send("Deleting the ticket in 3 seconds")
+        await asyncio.sleep(3)
+
+        await interaction.channel.delete()
+        
 
 
 
 
-@tasks.loop(seconds=60)
-async def logs():
-    global message
-    with open('logs/msg.txt','a') as f:
-        try:
-            f.write(f'{datetime.utcnow()} : {message}\n')
-            message = 0
-        except Exception as e:
-            message = 0
-            print(e)
+@bot.command(name="ticket")
+@commands.has_permissions(administrator=True)
+async def ticket(ctx):
+    await ctx.send(
+        embed = discord.Embed(
+            description="Press the button to create a new ticket!"
+        ),
+        view = CreateButton()
+    )
 
 
-client.run(token)
+bot.run(config.TOKEN)
