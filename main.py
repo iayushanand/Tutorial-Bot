@@ -132,7 +132,7 @@ class CloseButton(View):
             r1: discord.PermissionOverwrite(read_messages=True, send_messages=True, manage_messages=True),
             interaction.guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
         }
-        await interaction.channel.edit(category=category)
+        await interaction.channel.edit(category=category, overwrites=overwrites)
         await interaction.channel.send(
             embed= discord.Embed(
                 description="Ticket Closed!",
